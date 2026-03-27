@@ -1,4 +1,5 @@
-// File: DotsBoard.java
+package client;
+
 public class DotsBoard {
     // Kích thước lưới điểm (10 chấm x 10 chấm -> 10x10 ô vuông)
     public final int ROWS = 6; 

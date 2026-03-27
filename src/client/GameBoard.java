@@ -1,4 +1,4 @@
-// File: GameBoard.java
+package client;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -99,6 +99,12 @@ public class GameBoard {
             if (s.contains(x, y)) return s;
         }
         return null;
+    }
+
+    public boolean isShipSunkAt(int x, int y) {
+        Ship s = findShipAt(x, y);
+        // Trả về true nếu ô này có tàu VÀ con tàu đó đã bị bắn chìm hoàn toàn
+        return (s != null && s.isSunk());
     }
     
     // Hàm kiểm tra xem đã hết tàu chưa

@@ -1,8 +1,12 @@
+package server;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import server.GameServer;
+import client.DotsBoard;
 
 public class DotsSession extends Thread {
     private Socket s1, s2;

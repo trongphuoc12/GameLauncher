@@ -1,4 +1,4 @@
-// File: GameClient.java (CÓ ĐỒNG HỒ ĐẾM NGƯỢC - TIMER UI)
+package client;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
@@ -27,7 +27,6 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -77,6 +76,7 @@ public class GameClient extends JFrame {
     private ImageIcon iconShip5, iconShip4, iconShip3, iconShip2;
     private Image backgroundImage;
     private ImageIcon captainIcon;
+    private ImageIcon iconWater, iconHit, iconMiss, iconSunkX;
 
     private GameBoard localGameBoard;
     private List<Ship> ships;
@@ -541,26 +541,29 @@ public class GameClient extends JFrame {
         }
     }
 
-    private void handleUpdateMessage(String message) {
+        private void handleUpdateMessage(String message) {
         String[] parts = message.split(" ");
-        String boardType = parts[1];
+        String boardType = parts[1]; // "opponent" hoặc "self"
         int x = Integer.parseInt(parts[2]);
         int y = Integer.parseInt(parts[3]);
-        String result = parts[4];
+        String result = parts[4]; // "HIT" hoặc "MISS"
+
         if (boardType.equals("opponent")) {
+            // Nếu Server báo kết quả lượt bắn của mình lên ĐỐI THỦ
             if (result.equals("HIT")) {
-                setButtonState(opponentGridButtons[x][y], "X");
+                setButtonState(opponentGridButtons[x][y], "X", x, y, null); // Đối thủ chìm mình chưa biết ngay nên để null board
                 soundManager.playHit();
             } else {
-                setButtonState(opponentGridButtons[x][y], "O");
+                setButtonState(opponentGridButtons[x][y], "O", x, y, null);
                 soundManager.playMiss();
             }
         } else {
+            // Nếu Server báo ĐỐI THỦ bắn trúng MÌNH
             if (result.equals("HIT")) {
-                setButtonState(myGridButtons[x][y], "X");
+                setButtonState(myGridButtons[x][y], "X", x, y, localGameBoard);
                 soundManager.playHit();
             } else {
-                setButtonState(myGridButtons[x][y], "O");
+                setButtonState(myGridButtons[x][y], "O", x, y, localGameBoard);
                 soundManager.playMiss();
             }
         }
@@ -682,7 +685,7 @@ public class GameClient extends JFrame {
     private void drawMyGridFromShipList() {
         for (int i = 0; i < 10; i++) {
             for (int j = 0; j < 10; j++) {
-                setButtonState(myGridButtons[i][j], "~");
+                setButtonState(myGridButtons[i][j], "~", i, j, localGameBoard);
             }
         }
         for (Ship ship : ships) {
@@ -824,43 +827,41 @@ public class GameClient extends JFrame {
         return button;
     }
 
-    private void setButtonState(JButton btn, String state) {
+        private void setButtonState(JButton btn, String state, int x, int y, GameBoard board) {
         btn.setText(state);
         btn.setForeground(new Color(0, 0, 0, 0));
         btn.setIcon(null);
         btn.setDisabledIcon(null);
         btn.setContentAreaFilled(false);
         btn.setOpaque(false);
+
         if (state.equals("~")) {
             btn.setBorder(BorderFactory.createLineBorder(new Color(255, 255, 255, 50), 1));
-        } else if (state.startsWith("S")) {
+        } else if (state.startsWith("S") || state.equals("X")) {
             ImageIcon currentIcon = null;
-            if (state.equals("S5")) {
-                currentIcon = iconShip5;
-            } else if (state.equals("S4")) {
-                currentIcon = iconShip4;
-            } else if (state.equals("S3")) {
-                currentIcon = iconShip3;
-            } else if (state.equals("S2")) {
-                currentIcon = iconShip2;
-            } else {
-                currentIcon = iconShip3;
 
+            // 1. Chọn icon gốc (Tàu hoặc Tâm đỏ)
+            if (state.startsWith("S")) {
+                if (state.equals("S5")) currentIcon = iconShip5;
+                else if (state.equals("S4")) currentIcon = iconShip4;
+                else if (state.equals("S3")) currentIcon = iconShip3;
+                else if (state.equals("S2")) currentIcon = iconShip2;
+                else currentIcon = iconShip3;
+            } else if (state.equals("X")) {
+                currentIcon = iconHit;
             }
+
+            // 2. Nếu tàu tại ô này ĐÃ CHÌM, đè ảnh X đỏ lên
+            if (board != null && board.isShipSunkAt(x, y)) {
+                currentIcon = combineWithSunkX(currentIcon);
+            }
+
             if (currentIcon != null) {
                 btn.setIcon(currentIcon);
                 btn.setDisabledIcon(currentIcon);
                 btn.setBorder(null);
             } else {
-                btn.setBackground(Color.GRAY);
-                btn.setOpaque(true);
-            }
-        } else if (state.equals("X")) {
-            if (iconHit != null) {
-                btn.setIcon(iconHit);
-                btn.setDisabledIcon(iconHit);
-            } else {
-                btn.setBackground(Color.RED);
+                btn.setBackground(state.equals("X") ? Color.RED : Color.GRAY);
                 btn.setOpaque(true);
             }
         } else if (state.equals("O")) {
@@ -910,6 +911,31 @@ public class GameClient extends JFrame {
         explosionTimer.start();
     }
 
+    private ImageIcon combineWithSunkX(ImageIcon baseIcon) {
+    int size = 40; 
+    BufferedImage combined = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
+    Graphics2D g2 = combined.createGraphics();
+
+    // Vẽ tàu bên dưới
+    if (baseIcon != null) {
+        g2.drawImage(baseIcon.getImage(), 0, 0, size, size, null);
+    }
+
+    // Vẽ ảnh X đỏ của Phước đè lên trên
+    if (iconSunkX != null) {
+        g2.drawImage(iconSunkX.getImage(), 0, 0, size, size, null);
+    } else {
+        // Dự phòng nếu load ảnh lỗi thì tự vẽ đường chéo đỏ
+        g2.setColor(Color.RED);
+        g2.setStroke(new BasicStroke(3));
+        g2.drawLine(5, 5, size-5, size-5);
+        g2.drawLine(size-5, 5, 5, size-5);
+    }
+
+    g2.dispose();
+    return new ImageIcon(combined);
+}
+
     private void setOpponentGridEnabled(boolean enabled) {
         for (int i = 0; i < 10; i++) {
             for (int j = 0; j < 10; j++) {
@@ -926,13 +952,15 @@ public class GameClient extends JFrame {
 
     private void loadImages() {
         try {
-            iconWater = loadAndScale("images/water.png", 32, 32);
-            iconHit = loadAndScale("images/hit.png", 32, 32);
-            iconMiss = loadAndScale("images/miss.png", 32, 32);
-            iconShip5 = loadAndScale("images/ship5.png", 32, 32);
-            iconShip4 = loadAndScale("images/ship4.png", 32, 32);
-            iconShip3 = loadAndScale("images/ship3.png", 32, 32);
-            iconShip2 = loadAndScale("images/ship2.png", 32, 32);
+            iconWater = loadAndScale("resources/images/water.png", 32, 32);
+            iconHit = loadAndScale("resources/images/hit.png", 32, 32);
+            iconMiss = loadAndScale("resources/images/miss.png", 32, 32);
+            iconShip5 = loadAndScale("resources/images/ship5.png", 32, 32);
+            iconShip4 = loadAndScale("resources/images/ship4.png", 32, 32);
+            iconShip3 = loadAndScale("resources/images/ship3.png", 32, 32);
+            iconShip2 = loadAndScale("resources/images/ship2.png", 32, 32);
+            iconSunkX = new ImageIcon(ImageIO.read(new File("resources/images/sunk.png"))
+                        .getScaledInstance(40, 40, Image.SCALE_SMOOTH));
             try {
                 backgroundImage = ImageIO.read(new File("images/bg_sea.jpg"));
             } catch (Exception e) {
@@ -1029,6 +1057,27 @@ public class GameClient extends JFrame {
 
             g2.dispose();
             super.paintComponent(g);
+        }
+        private ImageIcon getSunkShipIcon(ImageIcon shipIcon) {
+            if (shipIcon == null) return iconSunkX;
+            
+            int w = shipIcon.getIconWidth();
+            int h = shipIcon.getIconHeight();
+            BufferedImage combined = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g2 = combined.createGraphics();
+            
+            // Vẽ tàu bên dưới
+            g2.drawImage(shipIcon.getImage(), 0, 0, null);
+            
+            // Vẽ dấu X màu đỏ đè lên trên
+            g2.setColor(new Color(255, 0, 0, 200)); // Màu đỏ
+            g2.setStroke(new BasicStroke(4)); // Nét dày
+            int gap = 5;
+            g2.drawLine(gap, gap, w - gap, h - gap);
+            g2.drawLine(w - gap, gap, gap, h - gap);
+            
+            g2.dispose();
+            return new ImageIcon(combined);
         }
     }
 }

@@ -1,4 +1,7 @@
-// File: GameMenu.java (BXH ĐẸP MẮT & DỜI VỊ TRÍ NÚT)
+package client;
+
+import server.GameServer;
+import server.DotsServer;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;

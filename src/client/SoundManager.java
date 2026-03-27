@@ -1,6 +1,5 @@
-// File: SoundManager.java (BẢN MỚI NHẤT - HỖ TRỢ CHỌN BÀI HÁT)
+package client;
 import java.io.File;
-
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
@@ -28,7 +27,7 @@ public class SoundManager {
         stopMusic(); 
 
         try {
-            File soundFile = new File("sounds/" + fileName);
+            File soundFile = new File("resources/sounds/" + fileName);
             if (!soundFile.exists()) {
                 System.err.println("SoundManager: Không tìm thấy file " + fileName);
                 return;
@@ -68,23 +67,23 @@ public class SoundManager {
     // --- PHẦN HIỆU ỨNG (SFX) ---
     public void playHit() {
         if (!isSFXEnabled) return; 
-        playEffect("sounds/hit.wav");
+        playEffect("resources/sounds/hit.wav");
     }
 
     public void playMiss() {
         if (!isSFXEnabled) return; 
-        playEffect("sounds/miss.wav");
+        playEffect("resources/sounds/miss.wav");
     }
     
     // Thêm các âm thanh cho Dots and Boxes
     public void playDraw() { 
-        if(isSFXEnabled) playEffect("sounds/draw.wav"); 
+        if(isSFXEnabled) playEffect("resources/sounds/draw.wav"); 
     }
     public void playScore() { 
-        if(isSFXEnabled) playEffect("sounds/score.wav"); 
+        if(isSFXEnabled) playEffect("resources/sounds/score.wav"); 
     }
     public void playWin() { 
-        if(isSFXEnabled) playEffect("sounds/win.wav"); 
+        if(isSFXEnabled) playEffect("resources/sounds/win.wav"); 
     }
     public void playLose() { 
         if(isSFXEnabled) playEffect("sounds/lose.wav"); 
