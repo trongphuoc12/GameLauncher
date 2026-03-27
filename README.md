@@ -77,9 +77,9 @@ Trò chơi hỗ trợ kết nối 2 người chơi thông qua địa chỉ IP.
 
 | Game Menu & Leaderboard | Battleship Gameplay |
 | :---: | :---: |
-| ![Menu]![alt text](image.png) | ![Battleship]![alt text](image-1.png) |
+| ![Menu]![alt text](screenshots/image.png) | ![Battleship]![alt text](screenshots/image-1.png) |
 | **Dots & Boxes Gameplay** | **Match Results & Rematch** |
-| ![Dots]![alt text](image-2.png) | !![alt text](image-3.png) |
+| ![Dots]![alt text](screenshots/image-2.png) | !![alt text](screenshots/image-3.png) |
 
 ---
 
